@@ -90,7 +90,7 @@ public class IOLoader extends Thread {
         if (writetest) {
             printheader("write");
             threads = 1;
-            while ((writethreshold >= (lapsedtime / (float) (writeiterations * threads))) && (maxthreads > threads)) {
+            while ((writethreshold >= (lapsedtime / (float) (writeiterations * threads))) && (maxthreads >= threads)) {
                 Loaders[] loaders = new Loaders[threads];
                 for (int i = 0; i < threads; i++) {
                     loaders[i] = new Loaders(i, writeiterations, writebuffer, workingdirectory, "w");
@@ -109,7 +109,7 @@ public class IOLoader extends Thread {
             printheader("read");
             threads = 1;
             lapsedtime = 0;
-            while ((readthreshold >= (lapsedtime / (float) (readiterations * threads)) && (maxthreads > threads))) {
+            while ((readthreshold >= (lapsedtime / (float) (readiterations * threads)) && (maxthreads >= threads))) {
                 Loaders[] loaders = new Loaders[threads];
                 for (int i = 0; i < threads; i++) {
                     loaders[i] = new Loaders(i, readiterations, readbuffer, workingdirectory, "r");

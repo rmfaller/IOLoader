@@ -5,6 +5,8 @@
  */
 package ioloader;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import static java.lang.Thread.yield;
@@ -29,10 +31,14 @@ class Loaders extends Thread {
     Loaders(int t, long iterations, long buffersize, String workingdirectory, String optype) {
         this.threadid = t;
         this.optype = optype;
+        Integer randomvalue;
         if (this.optype.compareTo("w") == 0) {
             this.filename = workingdirectory + "/ioloaderfile" + threadid;
         } else {
-           this.filename = workingdirectory + "/ioloaderfile0"; 
+            File dir = new File(workingdirectory);
+            File[] files = dir.listFiles((File dir1, String name1) -> name1.toLowerCase().startsWith("ioloader"));
+            randomvalue = files.length - 1;
+            this.filename = workingdirectory + "/" + files[randomgen.nextInt(randomvalue)].getName();
         }
         this.loops = iterations;
         this.buffersize = buffersize;

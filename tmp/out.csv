@@ -1,4 +1,0 @@
-threads,lapsed-ms,total-ops,buffer,mac-usb~avr-ops-T-s,mac-usb~total-ops-s,mac-usb~MB-T-s,mac-usb~total-MB-s,mac-usb~avr-iterations-s,mac-usb~avr-ms-op,
-1,94.0,200,8192,2127.6597,2127.6597,87.14893,87.14893,2127.6597,0.47,
-2,328.0,400,8192,1219.5122,2439.0244,49.951218,99.902435,609.7561,0.82,
-3,4662.0,600,8192,128.70012,386.10034,5.2715573,15.814672,42.900043,7.77,

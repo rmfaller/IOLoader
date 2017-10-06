@@ -5,6 +5,8 @@
  */
 package ioloader;
 
+import java.util.Date;
+
 /**
  *
  * @author rmfaller
@@ -19,17 +21,19 @@ public class IOLoader extends Thread {
     private static long readbuffer = 8192;
     private static String workingdirectory = "./tmp";
     private static long lapsedtime = 0;
+    private static long minthreads = 1;
     private static long maxthreads = 128;
     private static String comment = "ioloader";
     private static boolean writetest = false;
     private static boolean readtest = false;
+    private static boolean forever = false;
 
     /**
      * @param args the command line arguments
      * @throws java.lang.InterruptedException
      */
     public static void main(String[] args) throws InterruptedException {
-        int threads;
+        long threads;
         if (args.length < 1) {
             help();
         }
@@ -42,6 +46,10 @@ public class IOLoader extends Thread {
                 case "-r":
                 case "--readtest":
                     readtest = true;
+                    break;
+                case "-f":
+                case "--forever":
+                    forever = true;
                     break;
                 case "-c":
                 case "--comment":
@@ -76,6 +84,10 @@ public class IOLoader extends Thread {
                     workingdirectory = (args[i + 1]);
                     break;
                 case "-m":
+                case "--minthreads":
+                    minthreads = Long.parseLong(args[i + 1]);
+                    break;
+                case "-x":
                 case "--maxthreads":
                     maxthreads = Long.parseLong(args[i + 1]);
                     break;
@@ -87,41 +99,55 @@ public class IOLoader extends Thread {
                     break;
             }
         }
-        if (writetest) {
-            printheader("write");
-            threads = 1;
-            while ((writethreshold >= (lapsedtime / (float) (writeiterations * threads))) && (maxthreads >= threads)) {
-                Loaders[] loaders = new Loaders[threads];
-                for (int i = 0; i < threads; i++) {
-                    loaders[i] = new Loaders(i, writeiterations, writebuffer, workingdirectory, "w");
-                    loaders[i].start();
+        int loops = 0;
+        while (loops <= 1) {
+            if (writetest) {
+                if (loops == 0) {
+                    printheader("write");
                 }
+                threads = minthreads;
                 lapsedtime = 0;
-                for (int i = 0; i < threads; i++) {
-                    loaders[i].join();
-                    lapsedtime = loaders[i].getLapsedTime() + lapsedtime;
+                while ((writethreshold >= (lapsedtime / (float) (writeiterations * threads))) && (maxthreads >= threads)) {
+                    Loaders[] loaders = new Loaders[(int)threads];
+                    for (int i = 0; i < threads; i++) {
+                        loaders[i] = new Loaders(i, writeiterations, writebuffer, workingdirectory, "w");
+                        loaders[i].start();
+                    }
+                    lapsedtime = 0;
+                    for (int i = 0; i < threads; i++) {
+                        loaders[i].join();
+                        lapsedtime = loaders[i].getLapsedTime() + lapsedtime;
+                    }
+                    printdata(threads, lapsedtime, writeiterations, writebuffer);
+                    threads++;
                 }
-                printdata(threads, lapsedtime, writeiterations, writebuffer);
-                threads++;
             }
-        }
-        if (readtest) {
-            printheader("read");
-            threads = 1;
-            lapsedtime = 0;
-            while ((readthreshold >= (lapsedtime / (float) (readiterations * threads)) && (maxthreads >= threads))) {
-                Loaders[] loaders = new Loaders[threads];
-                for (int i = 0; i < threads; i++) {
-                    loaders[i] = new Loaders(i, readiterations, readbuffer, workingdirectory, "r");
-                    loaders[i].start();
+            if (readtest) {
+                if (loops == 0) {
+                    printheader("read");
                 }
+//                printheader("read");
+                threads = minthreads;
                 lapsedtime = 0;
-                for (int i = 0; i < threads; i++) {
-                    loaders[i].join();
-                    lapsedtime = loaders[i].getLapsedTime() + lapsedtime;
+                while ((readthreshold >= (lapsedtime / (float) (readiterations * threads)) && (maxthreads >= threads))) {
+                    Loaders[] loaders = new Loaders[(int)threads];
+                    for (int i = 0; i < threads; i++) {
+                        loaders[i] = new Loaders(i, readiterations, readbuffer, workingdirectory, "r");
+                        loaders[i].start();
+                    }
+                    lapsedtime = 0;
+                    for (int i = 0; i < threads; i++) {
+                        loaders[i].join();
+                        lapsedtime = loaders[i].getLapsedTime() + lapsedtime;
+                    }
+                    printdata(threads, lapsedtime, readiterations, readbuffer);
+                    threads++;
                 }
-                printdata(threads, lapsedtime, readiterations, readbuffer);
-                threads++;
+            }
+            if (!forever) {
+                loops = 2;
+            } else {
+                loops = 1;
             }
         }
     }
@@ -140,13 +166,18 @@ public class IOLoader extends Thread {
                 + "\n\t--writebuffer      | -b {default = 8192} buffer size of write"
                 + "\n\t--readbuffer       | -e {default = 8192} buffer size of read"
                 + "\n\t--comment          | -c {default = ioloader} appends this string to column headers to help with comparisons"
-                + "\n\t--maxthreads       | -m {default = 128} maximum threads limit before stopping"
+                + "\n\t--minthreads       | -m {default = 1} minimum threads to start with"
+                + "\n\t--maxthreads       | -x {default = 128} maximum threads limit before stopping"
+                + "\n\t--forever          | -f {default is to NOT run forever}"
                 + "\n\t--help             | -h this output\n"
                 + "\nExample: java -jar ./dist/IOLoader.jar --writetest --writethreshold 2 --writeiterations 4000 --workingdirectory /tmp/test\n";
         System.out.println(help);
     }
 
     private static void printheader(String optype) {
+        if (forever) {
+            System.out.print("timestamp,");
+        }
         System.out.print(optype + "-threads,lapsed-ms,total-ops,buffer,");
         System.out.print(comment + "~avr-ops-T-s,");
         System.out.print(comment + "~total-ops-s,");
@@ -157,8 +188,11 @@ public class IOLoader extends Thread {
         System.out.println();
     }
 
-    private static void printdata(int threads, long lapsedtime, long iterations, long buffer) {
+    private static void printdata(long threads, long lapsedtime, long iterations, long buffer) {
         float lapsed;
+        if (forever) {
+            System.out.print((long) new Date().getTime() + ",");
+        }
         System.out.print(threads + ",");
         System.out.print(lapsedtime + ",");
         System.out.print((threads * iterations) + ",");
@@ -170,8 +204,8 @@ public class IOLoader extends Thread {
         }
         System.out.print(((float) (iterations * threads) / lapsed) * 1000 + ",");
         System.out.print(((float) (iterations * threads) / lapsed) * threads * 1000 + ",");
-        System.out.print(((float) (buffer * threads) / lapsed) + ",");
-        System.out.print(((float) (buffer * threads) / lapsed) * threads + ",");
+        System.out.print(((float) ((buffer * threads) / lapsed) / 10) + ",");
+        System.out.print(((float) (((buffer * threads) / lapsed) * threads) / 10) + ",");
         System.out.print(((float) iterations / lapsed) * 1000 + ",");
         System.out.print(((float) lapsedtime / (float) (iterations * threads)) + ",");
         System.out.println();

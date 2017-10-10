@@ -108,7 +108,7 @@ public class IOLoader extends Thread {
                 threads = minthreads;
                 lapsedtime = 0;
                 while ((writethreshold >= (lapsedtime / (float) (writeiterations * threads))) && (maxthreads >= threads)) {
-                    Loaders[] loaders = new Loaders[(int)threads];
+                    Loaders[] loaders = new Loaders[(int) threads];
                     for (int i = 0; i < threads; i++) {
                         loaders[i] = new Loaders(i, writeiterations, writebuffer, workingdirectory, "w");
                         loaders[i].start();
@@ -130,7 +130,7 @@ public class IOLoader extends Thread {
                 threads = minthreads;
                 lapsedtime = 0;
                 while ((readthreshold >= (lapsedtime / (float) (readiterations * threads)) && (maxthreads >= threads))) {
-                    Loaders[] loaders = new Loaders[(int)threads];
+                    Loaders[] loaders = new Loaders[(int) threads];
                     for (int i = 0; i < threads; i++) {
                         loaders[i] = new Loaders(i, readiterations, readbuffer, workingdirectory, "r");
                         loaders[i].start();
@@ -178,12 +178,12 @@ public class IOLoader extends Thread {
         if (forever) {
             System.out.print("timestamp,");
         }
-        System.out.print(optype + "-threads,lapsed-ms,total-ops,buffer,");
-        System.out.print(comment + "~avr-ops-T-s,");
-        System.out.print(comment + "~total-ops-s,");
+        System.out.print(optype + "-threads,avr-lapsed-T-ms,combined-time-ms,total-ops,buffer,");
+        System.out.print(comment + "~avr-T-op-sec,");
+        System.out.print(comment + "~total-op-sec,");
         System.out.print(comment + "~MB-T-s,");
         System.out.print(comment + "~total-MB-s,");
-        System.out.print(comment + "~avr-iterations-s,");
+        System.out.print(comment + "~avr-ops-T-s,");
         System.out.print(comment + "~avr-ms-op,");
         System.out.println();
     }
@@ -194,20 +194,23 @@ public class IOLoader extends Thread {
             System.out.print((long) new Date().getTime() + ",");
         }
         System.out.print(threads + ",");
+        System.out.print((lapsedtime / threads) + ",");
         System.out.print(lapsedtime + ",");
-        System.out.print((threads * iterations) + ",");
+        long totalops = (iterations * threads);
+        System.out.print(totalops + ",");
         System.out.print(buffer + ",");
         if (lapsedtime == 0) {
             lapsed = 1;
         } else {
             lapsed = (float) lapsedtime;
         }
-        System.out.print(((float) (iterations * threads) / lapsed) * 1000 + ",");
-        System.out.print(((float) (iterations * threads) / lapsed) * threads * 1000 + ",");
-        System.out.print(((float) ((buffer * threads) / lapsed) / 10) + ",");
-        System.out.print(((float) (((buffer * threads) / lapsed) * threads) / 10) + ",");
-        System.out.print(((float) iterations / lapsed) * 1000 + ",");
-        System.out.print(((float) lapsedtime / (float) (iterations * threads)) + ",");
+        float opsperms = ((float) totalops / lapsed);
+        System.out.print(opsperms * 1000 + ",");
+        System.out.print(opsperms * threads * 1000 + ",");
+        System.out.print((opsperms * buffer) * .01  + ",");
+        System.out.print((opsperms * buffer) * .01 * threads + ",");
+        System.out.print(((float) iterations / lapsed) / threads * 1000 + ",");
+        System.out.print(((float) lapsed / totalops) + ",");
         System.out.println();
     }
 }

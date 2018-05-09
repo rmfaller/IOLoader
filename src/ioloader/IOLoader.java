@@ -91,6 +91,7 @@ public class IOLoader extends Thread {
                 case "--maxthreads":
                     maxthreads = Long.parseLong(args[i + 1]);
                     break;
+                case "-?":
                 case "-h":
                 case "--help":
                     help();

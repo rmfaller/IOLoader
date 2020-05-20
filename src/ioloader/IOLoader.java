@@ -171,7 +171,10 @@ public class IOLoader extends Thread {
                 + "\n\t--maxthreads       | -x {default = 128} maximum threads limit before stopping"
                 + "\n\t--forever          | -f {default is to NOT run forever}"
                 + "\n\t--help             | -h this output\n"
-                + "\nExample: java -jar ./dist/IOLoader.jar --writetest --writethreshold 2 --writeiterations 4000 --workingdirectory /tmp/test\n";
+                + "\nExamples: \n"
+                + "  java -jar ./dist/IOLoader.jar --writetest --writeiterations 10000  --forever --workingdirectory /tmp/test\n"
+                + "  java -jar ./dist/IOLoader.jar --readtest --maxthreads 8 --workingdirectory /tmp/test\n"
+                + "  java -jar ./dist/IOLoader.jar --writetest --writethreshold 1 --writeiterations 4000 --workingdirectory /tmp/test\n";
         System.out.println(help);
     }
 

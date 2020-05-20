@@ -19,5 +19,8 @@ with one or more of the following options:
 	--forever          | -f {default is to NOT run forever}
 	--help             | -h this output
 
-Example: java -jar ./dist/IOLoader.jar --writetest --writethreshold 2 --writeiterations 4000 --workingdirectory /tmp/test
+Examples:
+  java -jar ./dist/IOLoader.jar --writetest --writeiterations 10000  --forever --workingdirectory /tmp/test
+  java -jar ./dist/IOLoader.jar --readtest --maxthreads 8 --workingdirectory /tmp/test
+  java -jar ./dist/IOLoader.jar --writetest --writethreshold 1 --writeiterations 4000 --workingdirectory /tmp/test
 ```

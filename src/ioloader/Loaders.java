@@ -6,7 +6,6 @@
 package ioloader;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import static java.lang.Thread.yield;
@@ -18,7 +17,7 @@ import java.util.Random;
  * @author rmfaller
  */
 class Loaders extends Thread {
-
+    
     private long lapsedtime;
     private final int threadid;
     private final String filename;
@@ -27,11 +26,13 @@ class Loaders extends Thread {
     private final String optype;
     private final byte[] bitearray;
     private final long buffersize;
-
-    Loaders(int t, long iterations, long buffersize, String workingdirectory, String optype) {
+    private final long maxfilesize;
+    
+    Loaders(int t, long iterations, long buffersize, String workingdirectory, String optype, Long maxfilesize) {
         this.threadid = t;
         this.optype = optype;
         Integer randomvalue;
+        this.maxfilesize = maxfilesize;
         if (this.optype.compareTo("w") == 0) {
             this.filename = workingdirectory + "/ioloaderfile" + threadid;
         } else {
@@ -48,15 +49,15 @@ class Loaders extends Thread {
             this.bitearray[i] = 43;
         }
     }
-
+    
     private void setLapsedTime(long i) {
         this.lapsedtime = i;
     }
-
+    
     public long getLapsedTime() {
         return (this.lapsedtime);
     }
-
+    
     @Override
     public void run() {
         long totalbites = 0;
@@ -74,9 +75,12 @@ class Loaders extends Thread {
                 filesize = raf.length();
                 if (filesize != 0) {
                     randomvalue = filesize.intValue();
-                    filepoint = new Long(randomgen.nextInt(randomvalue));
+                    filepoint = (long) randomgen.nextInt(randomvalue);
                 } else {
-                    filepoint = new Long("0");
+                    filepoint = Long.valueOf("0");
+                }
+                if ((this.maxfilesize != 0) && (filepoint >= this.maxfilesize)) {
+                    filepoint = filepoint - (this.maxfilesize - this.buffersize);
                 }
                 raf.seek(filepoint);
                 if (this.optype.compareTo("w") == 0) {
@@ -97,5 +101,5 @@ class Loaders extends Thread {
         }
         this.setLapsedTime(optime);
     }
-
+    
 }

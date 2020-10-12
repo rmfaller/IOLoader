@@ -17,7 +17,7 @@ import java.util.Random;
  * @author rmfaller
  */
 class Loaders extends Thread {
-    
+
     private long lapsedtime;
     private final int threadid;
     private final String filename;
@@ -27,7 +27,9 @@ class Loaders extends Thread {
     private final byte[] bitearray;
     private final long buffersize;
     private final long maxfilesize;
-    
+    private long transactions = 0;
+    private long bytes = 0;
+
     Loaders(int t, long iterations, long buffersize, String workingdirectory, String optype, Long maxfilesize) {
         this.threadid = t;
         this.optype = optype;
@@ -39,6 +41,9 @@ class Loaders extends Thread {
             File dir = new File(workingdirectory);
             File[] files = dir.listFiles((File dir1, String name1) -> name1.toLowerCase().startsWith("ioloader"));
             randomvalue = files.length - 1;
+            if (randomvalue < 1) {
+                randomvalue = 1;
+            }
             this.filename = workingdirectory + "/" + files[randomgen.nextInt(randomvalue)].getName();
         }
         this.loops = iterations;
@@ -49,15 +54,31 @@ class Loaders extends Thread {
             this.bitearray[i] = 43;
         }
     }
-    
+
     private void setLapsedTime(long i) {
         this.lapsedtime = i;
     }
-    
+
+    private void setTransactions(long i) {
+        this.transactions = i;
+    }
+
+    private void setBytes(long i) {
+        this.bytes = i;
+    }
+
+    public long getTransactions() {
+        return (this.transactions);
+    }
+
+    public long getBytes() {
+        return (this.bytes);
+    }
+
     public long getLapsedTime() {
         return (this.lapsedtime);
     }
-    
+
     @Override
     public void run() {
         long totalbites = 0;
@@ -71,6 +92,8 @@ class Loaders extends Thread {
         try {
             raf = new RandomAccessFile(this.filename, "rwd");
             for (int i = 0; i < this.loops; i++) {
+                File tf = new File(this.filename);
+                tf.setLastModified((long) new Date().getTime());
                 long startop = (long) new Date().getTime();
                 filesize = raf.length();
                 if (filesize != 0) {
@@ -100,6 +123,9 @@ class Loaders extends Thread {
             System.out.println("Exception: " + e);
         }
         this.setLapsedTime(optime);
+        this.setTransactions(loops);
+        this.setBytes(totalbites);
+//        System.out.println(optime + " .... " + loops + " bits = " + totalbites);
     }
-    
+
 }

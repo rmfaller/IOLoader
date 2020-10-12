@@ -27,4 +27,8 @@ Examples:
   java -jar ./dist/IOLoader.jar --writetest --maxthreads 2 --minthreads 2 --forever --workingdirectory ./tmp --maxfilesize 1m --writeiterations 1024 --comment t0 --writethreshold 2
   java -jar ./dist/IOLoader.jar --writetest --writethreshold 1 --writeiterations 4000 --workingdirectory /tmp/test
 
+Other option is to use the following on a Mac:
+dd if=/dev/zero bs=1024k of=tstfile count=1024 && dd if=tstfile bs=1024k of=/dev/null count=1024 && rm tstfile
+See: http://hints.macworld.com/article.php?story=20120704113548693
+
 ```

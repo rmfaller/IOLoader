@@ -5,6 +5,8 @@
  */
 package ioloader;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.util.Date;
 
 /**
@@ -20,7 +22,9 @@ public class IOLoader extends Thread {
     private static float readthreshold = (float) 0.1;
     private static long readbuffer = 8192;
     private static String workingdirectory = "./tmp";
-    private static long lapsedtime = 0;
+    private static long totallapsedtime = 0;
+    private static long totalbytes = 0;
+    private static long totaltransactions = 0;
     private static long minthreads = 1;
     private static long maxthreads = 128;
     private static String comment = "ioloader";
@@ -28,9 +32,13 @@ public class IOLoader extends Thread {
     private static boolean readtest = false;
     private static boolean forever = false;
     private static boolean summary = false;
+    private static boolean filecount = true;
     private static long maxfilesize = 0;
     private static long previoustime = 0;
-
+    private static float writebestiops = 0;
+    private static float writeworseiops = 1048576;
+    private static float readbestiops = 0;
+    private static float readworseiops = 1048576;
     /**
      * @param args the command line arguments
      * @throws java.lang.InterruptedException
@@ -93,7 +101,15 @@ public class IOLoader extends Thread {
                 case "-x":
                 case "--maxthreads":
                     maxthreads = Long.parseLong(args[i + 1]);
-                    break; 
+                    break;
+                case "-y":
+                case "--summary":
+                    summary = true;
+                    break;
+                case "-g":
+                case "--filecount":
+                    filecount = false;
+                    break;
                 case "-z":
                 case "--maxfilesize":
                     String mfsz = (args[i + 1]).substring(args[i + 1].length() - 1);
@@ -104,7 +120,7 @@ public class IOLoader extends Thread {
                             maxfilesize = (Long.parseLong((args[i + 1]).substring(0, args[i + 1].length() - 1))) * 1000000000;
                         }
                     } else {
-                        System.err.println("ERROR: maxfilesize value of " + args[i + 1] + " is not in the correct format. Proper format example 500m or 2g.");
+                        System.err.println("ERROR: --maxfilesize value of " + args[i + 1] + " is not in the correct format. Proper format example 500m or 2g.");
                         System.err.println("Value of 0 is being used which means the file(s) grow without limit");
                     }
                     break;
@@ -125,42 +141,84 @@ public class IOLoader extends Thread {
                     printheader("write");
                 }
                 threads = minthreads;
-                lapsedtime = 0;
-                while ((writethreshold >= (lapsedtime / (float) (writeiterations * threads))) && (maxthreads >= threads)) {
+                totallapsedtime = 0;
+                totalbytes = 0;
+                totaltransactions = 0;
+                while ((writethreshold >= (totallapsedtime / (float) (writeiterations * threads))) && (maxthreads >= threads)) {
                     Loaders[] loaders = new Loaders[(int) threads];
                     for (int i = 0; i < threads; i++) {
                         loaders[i] = new Loaders(i, writeiterations, writebuffer, workingdirectory, "w", maxfilesize);
                         loaders[i].start();
                     }
-                    lapsedtime = 0;
+                    totallapsedtime = 0;
+                    totalbytes = 0;
+                    totaltransactions = 0;
                     for (int i = 0; i < threads; i++) {
                         loaders[i].join();
-                        lapsedtime = loaders[i].getLapsedTime() + lapsedtime;
+                        totallapsedtime = loaders[i].getLapsedTime() + totallapsedtime;
+                        totalbytes = loaders[i].getBytes() + totalbytes;
+                        totaltransactions = loaders[i].getTransactions() + totaltransactions;
                     }
-                    printdata(threads, lapsedtime, writeiterations, writebuffer);
+                    float iops = printdata(threads, totallapsedtime, totaltransactions, totalbytes, writebuffer, writethreshold);
+                    if (iops > writebestiops) {
+                        writebestiops = iops;
+                    }
+                    if (iops < writeworseiops) {
+                        writeworseiops = iops;
+                    }
                     threads++;
+//                    totallapsedtime = 0;
+//                    totalbytes = 0;
+//                    totaltransactions = 0;
                 }
             }
             if (readtest) {
-                if (loops == 0) {
-                    printheader("read");
-                }
-//                printheader("read");
-                threads = minthreads;
-                lapsedtime = 0;
-                while ((readthreshold >= (lapsedtime / (float) (readiterations * threads)) && (maxthreads >= threads))) {
-                    Loaders[] loaders = new Loaders[(int) threads];
-                    for (int i = 0; i < threads; i++) {
-                        loaders[i] = new Loaders(i, readiterations, readbuffer, workingdirectory, "r", maxfilesize);
-                        loaders[i].start();
+                File dir = new File(workingdirectory);
+                File[] files = dir.listFiles(new FilenameFilter() {
+                    @Override
+                    public boolean accept(File dir, String name) {
+                        return name.toLowerCase().startsWith("ioloader");
                     }
-                    lapsedtime = 0;
-                    for (int i = 0; i < threads; i++) {
-                        loaders[i].join();
-                        lapsedtime = loaders[i].getLapsedTime() + lapsedtime;
+                });
+                if ((files.length < maxthreads) && (filecount)) {
+                    System.err.println("\nRead test ERROR: --maxthreads exceeds the number of files to read from in --workingdirectory which can lead to invalid read results.");
+                    System.err.println("Options:");
+                    System.err.println("   reduce the number of --threads to equal the number of files in the --workingdirectory to read from - or -");
+                    System.err.println("   use the --filecount switch to override this check but the results will not be valid - or -");
+                    System.err.println("   run a write test with a higher --maxthreads count and higher --writethreshold to generate enough files to match the number of threads.");
+                } else {
+                    if (loops == 0) {
+                        printheader("read");
                     }
-                    printdata(threads, lapsedtime, readiterations, readbuffer);
-                    threads++;
+                    threads = minthreads;
+                    totallapsedtime = 0;
+                    totalbytes = 0;
+                    totaltransactions = 0;
+                    while ((readthreshold >= (totallapsedtime / (float) (readiterations * threads)) && (maxthreads >= threads))) {
+                        Loaders[] loaders = new Loaders[(int) threads];
+                        for (int i = 0; i < threads; i++) {
+                            loaders[i] = new Loaders(i, readiterations, readbuffer, workingdirectory, "r", maxfilesize);
+                            loaders[i].start();
+                        }
+                        totallapsedtime = 0;
+                        totalbytes = 0;
+                        totaltransactions = 0;
+                        for (int i = 0; i < threads; i++) {
+                            loaders[i].join();
+                            totallapsedtime = loaders[i].getLapsedTime() + totallapsedtime;
+                            totalbytes = loaders[i].getBytes() + totalbytes;
+                            totaltransactions = loaders[i].getTransactions() + totaltransactions;
+                        }
+                        float iops = printdata(threads, totallapsedtime, totaltransactions, totalbytes, readbuffer, readthreshold);
+                        if (iops > readbestiops) {
+                            readbestiops = iops;
+                        }
+                        if (iops < readworseiops) {
+                            readworseiops = iops;
+                        }
+                        threads++;
+//                        totallapsedtime = 0;
+                    }
                 }
             }
             if (!forever) {
@@ -168,6 +226,9 @@ public class IOLoader extends Thread {
             } else {
                 loops = 1;
             }
+        }
+        if (summary) {
+            printsummary(writebestiops, writeworseiops, readbestiops, readworseiops);
         }
     }
 
@@ -200,60 +261,56 @@ public class IOLoader extends Thread {
     }
 
     private static void printheader(String optype) {
-        if (forever) {
-            System.out.print("timestamp,clock-lapsedtime-ms,");
-        }
-        System.out.print(optype + "-threads,buffer,"); // 1,2
-        System.out.print(comment + "~combined-ops,"); //3
-        System.out.print(comment + "~combined-time-ms,"); //4
-        System.out.print(comment + "~avr-T-lapsedtime-ms,");  //5
-        System.out.print(comment + "~avr-T-op-sec,");  //6
-        System.out.print(comment + "~combined-ops-sec,");  //7
-        System.out.print(comment + "~avr-T-MB-sec,");  //8
-        System.out.print(comment + "~total-MB-sec,");  //9
-        System.out.print(comment + "~avr-ms-op-sec,");  //10
-        System.out.print(comment + "~throughput-per-T-opsxMB,");  //11
-        System.out.print(comment + "~throughput-average-opsxMB");  //12
+        System.out.print("timestamp,"); //A
+        System.out.print("clock-lapsedtime-ms,"); ///b
+        System.out.print(optype + "-threads," + optype + "-threshold,buffer,"); // C, D, E
+        System.out.print(optype + "-total-transactions," + optype + "-total-MB,"); // F, G
+        System.out.print(comment + "~avr-bytes-tx,");  //H
+        System.out.print(comment + "~avr-time-tx-T-ms,");  //I
+        System.out.print(comment + "~avr-tx-sec-T-IOPs,");  //J
+        System.out.print(comment + "~avr-MB-per-T-sec,");  //K
+        System.out.print(comment + "~total-tx-sec-IOPs,");  //L
+        System.out.print(comment + "~total-MB-sec,");  //M
+        System.out.print(comment + "~combined-time-ms"); //N
         System.out.println();
     }
 
-    private static void printdata(long threads, long lapsedtime, long iterations, long buffer) {
+    private static float printdata(long threads, long totallapsedtime, long iterations, long totalbytes, long buffer, float threshold) {
         float lapsed;
-        long presenttime = 0;
-        if (forever) {
-            presenttime = (long) new Date().getTime();
-            System.out.print(presenttime + "," + (presenttime - previoustime) + ",");
-            previoustime = presenttime;
-        }
-        //threads and buffer 1, 2
-        System.out.print(threads + "," + buffer + ",");
-        //combined-ops 3
-        long combinedops = (iterations * threads);
-        System.out.print(combinedops + ",");
-        //combined-time-ms 4
-        System.out.print(lapsedtime + ",");
-        //avr-T-lapsedtime-ms  5
-        System.out.print((lapsedtime / threads) + ",");
-
-        if (lapsedtime == 0) {
+        long presenttime = (long) new Date().getTime();
+        if (totallapsedtime == 0) {
             lapsed = 1;
         } else {
-            lapsed = (float) lapsedtime;
+            lapsed = (float) totallapsedtime;
         }
-        //avr-T-op-sec  6
-        System.out.print((((float) iterations / (lapsedtime / threads)) * 1000) + ",");
-        //combined-ops-sec  7
-        System.out.print(((((float) iterations / (lapsedtime / threads)) * 1000) * threads) + ",");
-        //avr-T-MB-sec  8
-        System.out.print((((((float) iterations / (lapsedtime / threads)) * 1000) * buffer) / 1048576) + ",");
-        //total-MB-s  9
-        System.out.print((((((float) iterations / (lapsedtime / threads)) * 1000) * buffer) / 1048576) * threads + ",");
-        //avr-ms-op  10
-        System.out.print(((float) lapsed / combinedops) + ",");
-        //throughput-per-T  11
-        System.out.print((((float) iterations / (lapsedtime / threads)) * 1000) * (((((float) iterations / (lapsedtime / threads)) * 1000) * buffer) / 1048576) + ",");
-        //throughput-average  12
-        System.out.print(((((float) iterations / (lapsedtime / threads)) * 1000) * (((((float) iterations / (lapsedtime / threads)) * 1000) * buffer) / 1048576)) * threads);
+        float averbytespertx = ((float) totalbytes / iterations);
+        float avertimepertxperT = ((float) (lapsed / iterations));
+        float avertxpersecperT = (((float) 1000 / avertimepertxperT) / threads);
+        float averMBperTpersec = ((averbytespertx * avertxpersecperT) / 1048576);
+        float iops = (avertxpersecperT * threads);
+        long totalops = (iterations * threads);
+
+        System.out.print(presenttime + "," + (presenttime - previoustime) + ","); // A, B
+        previoustime = presenttime;
+        System.out.print(threads + "," + threshold + "," + buffer + ","); //threads and buffe C, D, E
+        System.out.print(iterations + "," + ((float) totalbytes / 1048576) + ","); //transactions and MB F, G
+        System.out.print(averbytespertx + ","); //avr-bytes-tx H
+        System.out.print(avertimepertxperT + ","); //avr-time-tx-T-ms I
+        System.out.print(avertxpersecperT + ","); //avr-tx-sec-T-IOPs J
+        System.out.print(averMBperTpersec + ","); //avr-MB-per-T-sec K
+        System.out.print(iops + ","); //total-tx-sec-IOPs L
+        System.out.print((averMBperTpersec * threads) + ","); //total-MB-sec M
+        System.out.print(lapsed ); //combined-time-ms N
         System.out.println();
+        return(iops);
+    }
+
+    private static void printsummary(float writebestiops, float writeworseiops, float readbestiops, float readworseiops) {
+        if (writebestiops > 0) {
+            System.out.println("\nIOLoader write best IOPs = " + writebestiops + " and worse IOPs = " + writeworseiops);
+        }
+        if (readbestiops > 0) {
+            System.out.println("\nIOLoader read best IOPS = " + readbestiops + " and worse IOPs = " + readworseiops);
+        }
     }
 }

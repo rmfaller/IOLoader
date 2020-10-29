@@ -1,0 +1,9 @@
+var mbscolumns = [
+{type: 'number', label: 'clock', color: 'black', disabledColor: 'lightgray', visible: true},
+{type: 'number', label: '0-oldmac-vbox-read~total-MB-sec', color: 'red', disabledColor: 'lightgray', visible: true},
+{type: 'number', label: '1-oldmac-vbox-write~total-MB-sec', color: 'gold', disabledColor: 'lightgray', visible: true},
+{type: 'number', label: '2-newmac-hd-read~total-MB-sec', color: 'magenta', disabledColor: 'lightgray', visible: true},
+{type: 'number', label: '3-newmac-hd-write~total-MB-sec', color: 'indigo', disabledColor: 'lightgray', visible: true},
+{type: 'number', label: '4-oldmac-hd-write~total-MB-sec', color: 'slateblue', disabledColor: 'lightgray', visible: true},
+{type: 'number', label: '5-oldmac-hd-read~total-MB-sec', color: 'green', disabledColor: 'lightgray', visible: true}];
+function drawChart () {

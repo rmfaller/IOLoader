@@ -1,0 +1,11 @@
+run,timestamp,logile,clock-lapsedtime-ms,hd-write~total-tx-sec-IOPs,hd-write~total-MB-sec
+0,1603209365481,1028,/Users/robert.faller/tmp/tmp,   9581.29,     74.85
+1,1603209366356,875,/Users/robert.faller/tmp/tmp,  12430.96,     97.12
+2,1603209367364,1008,/Users/robert.faller/tmp/tmp,  12468.80,     97.41
+3,1603209368304,940,/Users/robert.faller/tmp/tmp,  14800.36,    115.63
+4,1603209369029,725,/Users/robert.faller/tmp/tmp,  16050.16,    125.39
+5,1603209369899,870,/Users/robert.faller/tmp/tmp,  17252.37,    134.78
+6,1603209370614,715,/Users/robert.faller/tmp/tmp,  16865.88,    131.76
+7,1603209371529,915,/Users/robert.faller/tmp/tmp,  15891.37,    124.15
+8,1603209372521,992,/Users/robert.faller/tmp/tmp,  14789.97,    115.55
+9,1603209373539,1018,/Users/robert.faller/tmp/tmp,  14116.84,    110.29

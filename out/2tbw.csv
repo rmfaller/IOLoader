@@ -1,0 +1,4 @@
+run,timestamp,logile,clock-lapsedtime-ms,2tb-write~total-tx-sec-IOPs,2tb-write~total-MB-sec
+0,1603209161284,10722,/Volumes/twoTBdrive/tmp/tmp,    831.68,      6.50
+1,1603209186235,24951,/Volumes/twoTBdrive/tmp/tmp,    345.71,      2.70
+2,1603209227195,40960,/Volumes/twoTBdrive/tmp/tmp,    206.19,      1.61

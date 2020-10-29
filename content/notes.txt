@@ -1,0 +1,36 @@
+run IOLader:
+java -jar /Users/robert.faller/projects/IOLoader/dist/IOLoader.jar \
+  --readtest \
+  --readiterations 16384 \
+  --readthreshold .1 \
+  --maxfilesize 2g \
+  --minthreads 1 \
+  --maxthreads 10 \
+  --comment hd \
+  --workingdirectory $HOME/tmp/tmp \
+  --forever
+
+java -jar /Users/robert.faller/projects/IOLoader/dist/IOLoader.jar \
+  --writetest \
+  --writeiterations 16384 \
+  --writethreshold 1 \
+  --maxfilesize 2g \
+  --minthreads 1 \
+  --maxthreads 10 \
+  --comment hd \
+  --workingdirectory $HOME/tmp/tmp \
+  --forever
+
+directing output to r0.csv or w0.csv
+Filter out all but three columns
+cat r0.csv | cut -d "," -f1,13-14 > rf0.csv
+cat w0.csv | cut -d "," -f1,13-14 > wf0.csv
+
+join -t , rf0.csv wf0.csv > disktype0.csv
+
+run against another disk using r1 and w1 
+
+when done use
+join -t , disktype0.csv disktype1.csv > combined.csv
+
+chartprep.sh combined.csv

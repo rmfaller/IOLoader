@@ -1,0 +1,11 @@
+run,timestamp,logile,clock-lapsedtime-ms,2tb-read~total-tx-sec-IOPs,2tb-read~total-MB-sec
+0,1603209083218,373,/Volumes/twoTBdrive/tmp/tmp,  42445.60,    330.89
+1,1603209083498,280,/Volumes/twoTBdrive/tmp/tmp,  90021.98,    700.78
+2,1603209083818,320,/Volumes/twoTBdrive/tmp/tmp,  73142.86,    569.59
+3,1603209084445,627,/Volumes/twoTBdrive/tmp/tmp,  35812.02,    278.59
+4,1603209085659,1214,/Volumes/twoTBdrive/tmp/tmp,  27882.91,    217.01
+5,1603209086019,360,/Volumes/twoTBdrive/tmp/tmp, 112733.94,    877.67
+6,1603209086513,494,/Volumes/twoTBdrive/tmp/tmp, 108606.05,    844.38
+7,1603209087015,502,/Volumes/twoTBdrive/tmp/tmp,  88922.66,    692.31
+8,1603209087528,513,/Volumes/twoTBdrive/tmp/tmp, 101414.03,    788.45
+9,1603209088100,572,/Volumes/twoTBdrive/tmp/tmp,  92564.97,    719.43

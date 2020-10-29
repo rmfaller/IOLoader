@@ -1,0 +1,76 @@
+if (!opschart) {
+ops = new google.visualization.DataTable();
+ops.addColumn('number','clock');
+ops.addColumn('number','0-oldmac-vbox-read~total-tx-sec-IOPs');
+ops.addColumn('number','1-oldmac-vbox-write~total-tx-sec-IOPs');
+ops.addColumn('number','2-newmac-hd-read~total-tx-sec-IOPs');
+ops.addColumn('number','3-newmac-hd-write~total-tx-sec-IOPs');
+ops.addColumn('number','4-oldmac-hd-write~total-tx-sec-IOPs');
+ops.addColumn('number','5-oldmac-hd-read~total-tx-sec-IOPs');
+ops.addRows([
+[00, 103696.20, null, null, null, null, null],
+[01, null, 2234.28, null, null, null, null],
+[02, null, null, 134295.08, null, null, null],
+[03, null, null, null, 13529.31, null, null],
+[04, null, null, null, null, 9492.47, null],
+[05, null, null, null, null, null, 59362.32],
+[10, 112219.18, null, null, null, null, null],
+[11, null, 961.02, null, null, null, null],
+[12, null, null, 113384.09, null, null, null],
+[13, null, null, null, 15633.59, null, null],
+[14, null, null, null, null, 8733.48, null],
+[15, null, null, null, null, null, 72176.21],
+[20, 127336.78, null, null, null, null, null],
+[21, null, 752.15, null, null, null, null],
+[22, null, null, 151236.92, null, null, null],
+[23, null, null, null, 16832.88, null, null],
+[24, null, null, null, null, 7682.40, null],
+[25, null, null, null, null, null, 71441.86],
+[30, 100361.41, null, null, null, null, null],
+[31, null, 670.94, null, null, null, null],
+[32, null, null, 132395.95, null, null, null],
+[33, null, null, null, 17009.08, null, null],
+[34, null, null, null, null, 6041.85, null],
+[35, null, null, null, null, null, 74898.29],
+[40, 135181.52, null, null, null, null, null],
+[42, null, null, 155445.92, null, null, null],
+[43, null, null, null, 18827.86, null, null],
+[44, null, null, null, null, 5007.33, null],
+[45, null, null, null, null, null, 75851.85],
+[50, 157791.33, null, null, null, null, null],
+[52, null, null, 126192.56, null, null, null],
+[53, null, null, null, 18667.68, null, null],
+[54, null, null, null, null, 4209.48, null],
+[55, null, null, null, null, null, 85556.13],
+[60, 159288.89, null, null, null, null, null],
+[62, null, null, 108709.01, null, null, null],
+[63, null, null, null, 18118.17, null, null],
+[64, null, null, null, null, 4341.61, null],
+[65, null, null, null, null, null, 82867.05],
+[70, 147437.56, null, null, null, null, null],
+[72, null, null, 101922.24, null, null, null],
+[73, null, null, null, 17046.69, null, null],
+[74, null, null, null, null, 4159.56, null],
+[75, null, null, null, null, null, 65015.87],
+[80, 154404.19, null, null, null, null, null],
+[82, null, null, 107710.73, null, null, null],
+[83, null, null, null, 16152.48, null, null],
+[84, null, null, null, null, 3921.28, null],
+[85, null, null, null, null, null, 65073.26],
+[90, 147603.61, null, null, null, null, null],
+[92, null, null, 102272.17, null, null, null],
+[93, null, null, null, 15043.61, null, null],
+[94, null, null, null, null, 3702.10, null],
+[95, null, null, null, null, null, 69247.67]
+], false);
+      opsdataView = new google.visualization.DataView(ops);
+                opschart = new google.visualization.LineChart(document.getElementById('opschart'));
+                google.visualization.events.addListener(opschart, 'click', function (target) {
+                    if (target.targetID.match(/^legendentry#\d+$/)) {
+                        var index = parseInt(target.targetID.slice(12)) + 1;
+                        opscolumns[index].visible = !opscolumns[index].visible;
+                        mbscolumns[index].visible = !mbscolumns[index].visible;
+                        drawChart();
+                    }
+                });
+            }

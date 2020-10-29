@@ -29,10 +29,14 @@ class Loaders extends Thread {
     private final long maxfilesize;
     private long transactions = 0;
     private long bytes = 0;
+    private final boolean append;
+    private boolean dirtyread = false;
 
-    Loaders(int t, long iterations, long buffersize, String workingdirectory, String optype, Long maxfilesize) {
+    Loaders(int t, long iterations, long buffersize, String workingdirectory, String optype, Long maxfilesize, boolean append, boolean dirtyread) {
         this.threadid = t;
         this.optype = optype;
+        this.append = append;
+        this.dirtyread = dirtyread;
         Integer randomvalue;
         this.maxfilesize = maxfilesize;
         if (this.optype.compareTo("w") == 0) {
@@ -83,6 +87,7 @@ class Loaders extends Thread {
     public void run() {
         long totalbites = 0;
         RandomAccessFile raf;
+        boolean bitset = true;
         Long filepoint;
         Long filesize;
         Integer randomvalue;
@@ -92,25 +97,39 @@ class Loaders extends Thread {
         try {
             raf = new RandomAccessFile(this.filename, "rwd");
             for (int i = 0; i < this.loops; i++) {
-                File tf = new File(this.filename);
-                tf.setLastModified((long) new Date().getTime());
+//                File tf = new File(this.filename);
+//                tf.setLastModified((long) new Date().getTime());
                 long startop = (long) new Date().getTime();
                 filesize = raf.length();
                 if (filesize != 0) {
-                    randomvalue = filesize.intValue();
-                    filepoint = (long) randomgen.nextInt(randomvalue);
+                    if (append) {
+                        filepoint = filesize;
+                    } else {
+                        randomvalue = filesize.intValue();
+                        filepoint = (long) randomgen.nextInt(randomvalue);
+                    }
                 } else {
                     filepoint = Long.valueOf("0");
                 }
                 if ((this.maxfilesize != 0) && (filepoint >= this.maxfilesize)) {
                     filepoint = filepoint - (this.maxfilesize - this.buffersize);
                 }
-                raf.seek(filepoint);
                 if (this.optype.compareTo("w") == 0) {
+                    raf.seek(filepoint);
                     raf.write(this.bitearray);
                     totalbites = this.bitearray.length + totalbites;
                 } else {
+                    if (dirtyread) {
+                        raf.seek(i);
+                        raf.writeBoolean(bitset);
+                        if (bitset) {
+                            bitset = false;
+                        } else {
+                            bitset = true;
+                        }
+                    }
                     bites = new byte[(int) this.buffersize];
+                    raf.seek(filepoint);
                     bitesread = raf.read(bites);
                     totalbites = bitesread + totalbites;
                 }

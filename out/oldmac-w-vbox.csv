@@ -1,0 +1,5 @@
+run,timestamp,logile,clock-lapsedtime-ms,oldmac-vbox-write~total-tx-sec-IOPs,oldmac-vbox-write~total-MB-sec
+0,1603218694005,7556,./tmp,   2234.28,     17.46
+1,1603218711482,17477,./tmp,    961.02,      7.51
+2,1603218733958,22476,./tmp,    752.15,      5.88
+3,1603218759299,25341,./tmp,    670.94,      5.24

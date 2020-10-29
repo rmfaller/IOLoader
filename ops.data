@@ -1,0 +1,12 @@
+], false);
+      opsdataView = new google.visualization.DataView(ops);
+                opschart = new google.visualization.LineChart(document.getElementById('opschart'));
+                google.visualization.events.addListener(opschart, 'click', function (target) {
+                    if (target.targetID.match(/^legendentry#\d+$/)) {
+                        var index = parseInt(target.targetID.slice(12)) + 1;
+                        opscolumns[index].visible = !opscolumns[index].visible;
+                        mbscolumns[index].visible = !mbscolumns[index].visible;
+                        drawChart();
+                    }
+                });
+            }

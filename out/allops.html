@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <style>
+        * {
+            font-family: monospace;
+            font-size: 8;
+        }
+        div {
+            padding-top: 0px;
+            padding-right: 0px;
+            padding-bottom: 0px;
+            padding-left: 0px;
+        }
+        div.google-visualization-tooltip { width: 300px; }
+    </style>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        var ops, opschart, opschartData, opsdataView;
+        var mbs, mbschart, mbschartData, mbsdataView;
+        var nullFunc = function () {
+            return null;
+        };
+        google.charts.load('current', {
+            'packages': ['corechart', 'line']
+        });
+        google.charts.setOnLoadCallback(drawChart);
+var opscolumns = [
+{type: 'number', label: 'clock', color: 'black', disabledColor: 'lightgray', visible: true},
+{type: 'number', label: '0-oldmac-vbox-read~total-tx-sec-IOPs', color: 'red', disabledColor: 'lightgray', visible: true},
+{type: 'number', label: '1-oldmac-vbox-write~total-tx-sec-IOPs', color: 'gold', disabledColor: 'lightgray', visible: true},
+{type: 'number', label: '2-newmac-hd-read~total-tx-sec-IOPs', color: 'magenta', disabledColor: 'lightgray', visible: true},
+{type: 'number', label: '3-newmac-hd-write~total-tx-sec-IOPs', color: 'indigo', disabledColor: 'lightgray', visible: true},
+{type: 'number', label: '4-oldmac-hd-write~total-tx-sec-IOPs', color: 'slateblue', disabledColor: 'lightgray', visible: true},
+{type: 'number', label: '5-oldmac-hd-read~total-tx-sec-IOPs', color: 'green', disabledColor: 'lightgray', visible: true}];
+var mbscolumns = [
+{type: 'number', label: 'clock', color: 'black', disabledColor: 'lightgray', visible: true},
+{type: 'number', label: '0-oldmac-vbox-read~total-MB-sec', color: 'red', disabledColor: 'lightgray', visible: true},
+{type: 'number', label: '1-oldmac-vbox-write~total-MB-sec', color: 'gold', disabledColor: 'lightgray', visible: true},
+{type: 'number', label: '2-newmac-hd-read~total-MB-sec', color: 'magenta', disabledColor: 'lightgray', visible: true},
+{type: 'number', label: '3-newmac-hd-write~total-MB-sec', color: 'indigo', disabledColor: 'lightgray', visible: true},
+{type: 'number', label: '4-oldmac-hd-write~total-MB-sec', color: 'slateblue', disabledColor: 'lightgray', visible: true},
+{type: 'number', label: '5-oldmac-hd-read~total-MB-sec', color: 'green', disabledColor: 'lightgray', visible: true}];
+function drawChart () {
+if (!opschart) {
+ops = new google.visualization.DataTable();
+ops.addColumn('number','clock');
+ops.addColumn('number','0-oldmac-vbox-read~total-tx-sec-IOPs');
+ops.addColumn('number','1-oldmac-vbox-write~total-tx-sec-IOPs');
+ops.addColumn('number','2-newmac-hd-read~total-tx-sec-IOPs');
+ops.addColumn('number','3-newmac-hd-write~total-tx-sec-IOPs');
+ops.addColumn('number','4-oldmac-hd-write~total-tx-sec-IOPs');
+ops.addColumn('number','5-oldmac-hd-read~total-tx-sec-IOPs');
+ops.addRows([
+[00, 103696.20, null, null, null, null, null],
+[01, null, 2234.28, null, null, null, null],
+[02, null, null, 134295.08, null, null, null],
+[03, null, null, null, 13529.31, null, null],
+[04, null, null, null, null, 9492.47, null],
+[05, null, null, null, null, null, 59362.32],
+[10, 112219.18, null, null, null, null, null],
+[11, null, 961.02, null, null, null, null],
+[12, null, null, 113384.09, null, null, null],
+[13, null, null, null, 15633.59, null, null],
+[14, null, null, null, null, 8733.48, null],
+[15, null, null, null, null, null, 72176.21],
+[20, 127336.78, null, null, null, null, null],
+[21, null, 752.15, null, null, null, null],
+[22, null, null, 151236.92, null, null, null],
+[23, null, null, null, 16832.88, null, null],
+[24, null, null, null, null, 7682.40, null],
+[25, null, null, null, null, null, 71441.86],
+[30, 100361.41, null, null, null, null, null],
+[31, null, 670.94, null, null, null, null],
+[32, null, null, 132395.95, null, null, null],
+[33, null, null, null, 17009.08, null, null],
+[34, null, null, null, null, 6041.85, null],
+[35, null, null, null, null, null, 74898.29],
+[40, 135181.52, null, null, null, null, null],
+[42, null, null, 155445.92, null, null, null],
+[43, null, null, null, 18827.86, null, null],
+[44, null, null, null, null, 5007.33, null],
+[45, null, null, null, null, null, 75851.85],
+[50, 157791.33, null, null, null, null, null],
+[52, null, null, 126192.56, null, null, null],
+[53, null, null, null, 18667.68, null, null],
+[54, null, null, null, null, 4209.48, null],
+[55, null, null, null, null, null, 85556.13],
+[60, 159288.89, null, null, null, null, null],
+[62, null, null, 108709.01, null, null, null],
+[63, null, null, null, 18118.17, null, null],
+[64, null, null, null, null, 4341.61, null],
+[65, null, null, null, null, null, 82867.05],
+[70, 147437.56, null, null, null, null, null],
+[72, null, null, 101922.24, null, null, null],
+[73, null, null, null, 17046.69, null, null],
+[74, null, null, null, null, 4159.56, null],
+[75, null, null, null, null, null, 65015.87],
+[80, 154404.19, null, null, null, null, null],
+[82, null, null, 107710.73, null, null, null],
+[83, null, null, null, 16152.48, null, null],
+[84, null, null, null, null, 3921.28, null],
+[85, null, null, null, null, null, 65073.26],
+[90, 147603.61, null, null, null, null, null],
+[92, null, null, 102272.17, null, null, null],
+[93, null, null, null, 15043.61, null, null],
+[94, null, null, null, null, 3702.10, null],
+[95, null, null, null, null, null, 69247.67]
+], false);
+      opsdataView = new google.visualization.DataView(ops);
+                opschart = new google.visualization.LineChart(document.getElementById('opschart'));
+                google.visualization.events.addListener(opschart, 'click', function (target) {
+                    if (target.targetID.match(/^legendentry#\d+$/)) {
+                        var index = parseInt(target.targetID.slice(12)) + 1;
+                        opscolumns[index].visible = !opscolumns[index].visible;
+                        mbscolumns[index].visible = !mbscolumns[index].visible;
+                        drawChart();
+                    }
+                });
+            }
+if (!mbschart) {
+mbs = new google.visualization.DataTable();
+mbs.addColumn('number','clock');
+mbs.addColumn('number','0-oldmac-vbox-read~total-MB-sec');
+mbs.addColumn('number','1-oldmac-vbox-write~total-MB-sec');
+mbs.addColumn('number','2-newmac-hd-read~total-MB-sec');
+mbs.addColumn('number','3-newmac-hd-write~total-MB-sec');
+mbs.addColumn('number','4-oldmac-hd-write~total-MB-sec');
+mbs.addColumn('number','5-oldmac-hd-read~total-MB-sec');
+mbs.addRows([
+[00, 809.68, null, null, null, null, null],
+[01, null, 17.46, null, null, null, null],
+[02, null, null, 1048.23, null, null, null],
+[03, null, null, null, 105.70, null, null],
+[04, null, null, null, null, 74.16, null],
+[05, null, null, null, null, null, 463.25],
+[10, 875.00, null, null, null, null, null],
+[11, null, 7.51, null, null, null, null],
+[12, null, null, 884.79, null, null, null],
+[13, null, null, null, 122.14, null, null],
+[14, null, null, null, null, 68.23, null],
+[15, null, null, null, null, null, 563.11],
+[20, 993.16, null, null, null, null, null],
+[21, null, 5.88, null, null, null, null],
+[22, null, null, 1179.67, null, null, null],
+[23, null, null, null, 131.51, null, null],
+[24, null, null, null, null, 60.02, null],
+[25, null, null, null, null, null, 557.33],
+[30, 782.85, null, null, null, null, null],
+[31, null, 5.24, null, null, null, null],
+[32, null, null, 1032.62, null, null, null],
+[33, null, null, null, 132.88, null, null],
+[34, null, null, null, null, 47.20, null],
+[35, null, null, null, null, null, 584.66],
+[40, 1054.16, null, null, null, null, null],
+[42, null, null, 1212.94, null, null, null],
+[43, null, null, null, 147.09, null, null],
+[44, null, null, null, null, 39.12, null],
+[45, null, null, null, null, null, 591.91],
+[50, 1230.77, null, null, null, null, null],
+[52, null, null, 984.89, null, null, null],
+[53, null, null, null, 145.84, null, null],
+[54, null, null, null, null, 32.89, null],
+[55, null, null, null, null, null, 667.67],
+[60, 1242.35, null, null, null, null, null],
+[62, null, null, 848.33, null, null, null],
+[63, null, null, null, 141.55, null, null],
+[64, null, null, null, null, 33.92, null],
+[65, null, null, null, null, null, 646.75],
+[70, 1150.27, null, null, null, null, null],
+[72, null, null, 794.91, null, null, null],
+[73, null, null, null, 133.18, null, null],
+[74, null, null, null, null, 32.50, null],
+[75, null, null, null, null, null, 507.28],
+[80, 1204.34, null, null, null, null, null],
+[82, null, null, 840.03, null, null, null],
+[83, null, null, null, 126.19, null, null],
+[84, null, null, null, null, 30.64, null],
+[85, null, null, null, null, null, 507.78],
+[90, 1151.31, null, null, null, null, null],
+[92, null, null, 798.09, null, null, null],
+[93, null, null, null, 117.53, null, null],
+[94, null, null, null, null, 28.92, null],
+[95, null, null, null, null, null, 540.28]
+], false);
+               mbsdataView = new google.visualization.DataView(mbs);
+                mbschart = new google.visualization.LineChart(document.getElementById('mbschart'));
+                google.visualization.events.addListener(mbschart, 'click', function (target) {
+                    if (target.targetID.match(/^legendentry#\d+$/)) {
+                        var index = parseInt(target.targetID.slice(12)) + 1;
+                        opscolumns[index].visible = !opscolumns[index].visible;
+                        mbscolumns[index].visible = !mbscolumns[index].visible;
+                        drawChart();
+                    }
+                });
+            }
+           var opsvisibleColumnIndexes = [0];
+            var opscolors = [];
+            for (var i = 1; i < opscolumns.length; i++) {
+                if (opscolumns[i].visible) {
+                    opscolors.push(opscolumns[i].color);
+                    opsvisibleColumnIndexes.push(i);
+                } else {
+                    opscolors.push(opscolumns[i].disabledColor);
+                    opsvisibleColumnIndexes.push({
+                        calc: nullFunc,
+                        type: opscolumns[i].type,
+                        label: opscolumns[i].label,
+                    });
+                }
+            };
+            opsdataView.setColumns(opsvisibleColumnIndexes);
+            opschart.draw(opsdataView, {
+                colors: opscolors,
+                interpolateNulls: true,
+                width: 1800,
+                height: 500,
+                tooltip: { isHtml: true, textStyle: { fontSize: 10 } },       
+                legend: {
+                    position: 'right',
+                    maxLines: 16,
+                    textStyle: {
+                        fontSize: 10
+                    }
+                },
+                chartArea: {
+                    'width': '80%',
+                    'height': '80%'
+                },
+                hAxis: {
+                    textPosition: 'none'
+                },
+                vAxis: {
+                    textStyle: {
+                        fontSize: 8
+                    },
+                    title: 'IOPs'
+                }
+            });
+            var mbsvisibleColumnIndexes = [0];
+            var mbscolors = [];
+            for (var i = 1; i < mbscolumns.length; i++) {
+                if (mbscolumns[i].visible) {
+                    mbscolors.push(mbscolumns[i].color);
+                    mbsvisibleColumnIndexes.push(i);
+                } else {
+                    mbscolors.push(mbscolumns[i].disabledColor);
+                    mbsvisibleColumnIndexes.push({
+                        calc: nullFunc,
+                        type: mbscolumns[i].type,
+                        label: mbscolumns[i].label,
+                    });
+                }
+            };
+            mbsdataView.setColumns(mbsvisibleColumnIndexes);
+            mbschart.draw(mbsdataView, {
+                colors: mbscolors,
+                interpolateNulls: true,
+                width: 1800,
+                height: 500,
+                tooltip: { isHtml: true, textStyle: { fontSize: 10 } },       
+                legend: {
+                    position: 'none',
+                    textStyle: {
+                        fontSize: 8
+                    }
+                },
+                chartArea: {
+                    'width': '80%',
+                    'height': '80%'
+                },
+                hAxis: {
+                    title: 'Run number',
+                    slantedText: true,
+                    slantedTextAngle: 45,
+                    textStyle: {
+                        fontSize: 8
+                    }
+                },
+                vAxis: {
+                    textStyle: {
+                        fontSize: 8
+                    },
+                    title: 'MBs'
+                }
+            });
+        };
+    </script>
+</head>
+<body>
+    <div id="opschart"></div>
+    <div id="mbschart"></div>
+</body>
+</html>

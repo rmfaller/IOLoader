@@ -33,12 +33,17 @@ public class IOLoader extends Thread {
     private static boolean forever = false;
     private static boolean summary = false;
     private static boolean filecount = true;
+    private static boolean append = false;
+    private static boolean subset = false;
+    private static boolean dirtyread = false;
     private static long maxfilesize = 0;
     private static long previoustime = 0;
     private static float writebestiops = 0;
     private static float writeworseiops = 1048576;
     private static float readbestiops = 0;
     private static float readworseiops = 1048576;
+    private static long runnumber = 0;
+
     /**
      * @param args the command line arguments
      * @throws java.lang.InterruptedException
@@ -57,6 +62,9 @@ public class IOLoader extends Thread {
                 case "-r":
                 case "--readtest":
                     readtest = true;
+                    break;
+                case "--dirtyread":
+                    dirtyread = true;
                     break;
                 case "-f":
                 case "--forever":
@@ -110,6 +118,14 @@ public class IOLoader extends Thread {
                 case "--filecount":
                     filecount = false;
                     break;
+                case "-a":
+                case "--append":
+                    append = true;
+                    break;
+                case "-v":
+                case "--subset":
+                    subset = true;
+                    break;
                 case "-z":
                 case "--maxfilesize":
                     String mfsz = (args[i + 1]).substring(args[i + 1].length() - 1);
@@ -130,6 +146,10 @@ public class IOLoader extends Thread {
                     help();
                     break;
                 default:
+                    if (args[i].startsWith("-")) {
+                        System.err.println("Unrecognized switch: " + args[i] + "\n");
+                        help();
+                    }
                     break;
             }
         }
@@ -147,7 +167,7 @@ public class IOLoader extends Thread {
                 while ((writethreshold >= (totallapsedtime / (float) (writeiterations * threads))) && (maxthreads >= threads)) {
                     Loaders[] loaders = new Loaders[(int) threads];
                     for (int i = 0; i < threads; i++) {
-                        loaders[i] = new Loaders(i, writeiterations, writebuffer, workingdirectory, "w", maxfilesize);
+                        loaders[i] = new Loaders(i, writeiterations, writebuffer, workingdirectory, "w", maxfilesize, append, dirtyread);
                         loaders[i].start();
                     }
                     totallapsedtime = 0;
@@ -197,7 +217,7 @@ public class IOLoader extends Thread {
                     while ((readthreshold >= (totallapsedtime / (float) (readiterations * threads)) && (maxthreads >= threads))) {
                         Loaders[] loaders = new Loaders[(int) threads];
                         for (int i = 0; i < threads; i++) {
-                            loaders[i] = new Loaders(i, readiterations, readbuffer, workingdirectory, "r", maxfilesize);
+                            loaders[i] = new Loaders(i, readiterations, readbuffer, workingdirectory, "r", maxfilesize, append, dirtyread);
                             loaders[i].start();
                         }
                         totallapsedtime = 0;
@@ -233,7 +253,7 @@ public class IOLoader extends Thread {
     }
 
     private static void help() {
-        String help = "\nIOLoader usage:"
+        String help = "\nIOLoader version .01 usage:"
                 + "\njava -jar ./dist/IOLoader.jar"
                 + "\nwith one or more of the following options:"
                 + "\n\t--workingdirectory | -d {default = ./tmp} location to write and read files"
@@ -251,6 +271,7 @@ public class IOLoader extends Thread {
                 + "\n\t--maxfilesize      | -z {no size limit} maximum size an individual file (each thread is associated to one file) can grow to"
                 + "\n\t                        integer value must be appended with a \"m\" for megabytes or \"g\" for gigabytes i.e. 500m or 2g"
                 + "\n\t--forever          | -f {default is to NOT run forever}"
+                + "\n\t--append           | -a {default is to NOT to append} on write operations always append to the end of the file. If --maxfilesize is set then append up to the size specified"
                 + "\n\t--help             | -h this output\n"
                 + "\nExamples: \n"
                 + "  java -jar ./dist/IOLoader.jar --writetest --writeiterations 10000  --forever --workingdirectory /tmp/test\n"
@@ -261,17 +282,25 @@ public class IOLoader extends Thread {
     }
 
     private static void printheader(String optype) {
-        System.out.print("timestamp,"); //A
-        System.out.print("clock-lapsedtime-ms,"); ///b
-        System.out.print(optype + "-threads," + optype + "-threshold,buffer,"); // C, D, E
-        System.out.print(optype + "-total-transactions," + optype + "-total-MB,"); // F, G
-        System.out.print(comment + "~avr-bytes-tx,");  //H
-        System.out.print(comment + "~avr-time-tx-T-ms,");  //I
-        System.out.print(comment + "~avr-tx-sec-T-IOPs,");  //J
-        System.out.print(comment + "~avr-MB-per-T-sec,");  //K
-        System.out.print(comment + "~total-tx-sec-IOPs,");  //L
-        System.out.print(comment + "~total-MB-sec,");  //M
-        System.out.print(comment + "~combined-time-ms"); //N
+
+        if (!subset) {
+            System.out.print("run,timestamp,"); //A
+            System.out.print("clock-lapsedtime-ms,logfile,"); ///b
+            System.out.print(comment + "-" + optype + "-threads," + comment + "-" + optype + "-threshold,buffer,"); // C, D, E
+            System.out.print(comment + "-" + optype + "-total-transactions," + comment + "-" + optype + "-total-MB,"); // F, G
+            System.out.print(comment + "-" + optype + "~avr-bytes-tx,");  //H
+            System.out.print(comment + "-" + optype + "~avr-time-tx-T-ms,");  //I
+            System.out.print(comment + "-" + optype + "~avr-tx-sec-T-IOPs,");  //J
+            System.out.print(comment + "-" + optype + "~avr-MB-per-T-sec,");  //K
+        } else {
+            System.out.print("run," + comment + "-" + optype + "-threads,"); //A
+            System.out.print("clock-lapsedtime-ms,logfile,"); ///b
+        }
+        System.out.print(comment + "-" + optype + "~total-tx-sec-IOPs,");  //L
+        System.out.print(comment + "-" + optype + "~total-MB-sec");  //M
+        if (!subset) {
+            System.out.print("," + comment + "-" + optype + "~combined-time-ms"); //N
+        }
         System.out.println();
     }
 
@@ -289,20 +318,28 @@ public class IOLoader extends Thread {
         float averMBperTpersec = ((averbytespertx * avertxpersecperT) / 1048576);
         float iops = (avertxpersecperT * threads);
         long totalops = (iterations * threads);
-
-        System.out.print(presenttime + "," + (presenttime - previoustime) + ","); // A, B
+        if (!subset) {
+            System.out.print(runnumber + "," + presenttime + "," + (presenttime - previoustime) + "," + workingdirectory + ","); // A, B
+        } else {
+            System.out.print(runnumber + "," + threads + "," + (presenttime - previoustime) + "," + workingdirectory + ","); // A, B
+        }
+        runnumber++;
         previoustime = presenttime;
-        System.out.print(threads + "," + threshold + "," + buffer + ","); //threads and buffe C, D, E
-        System.out.print(iterations + "," + ((float) totalbytes / 1048576) + ","); //transactions and MB F, G
-        System.out.print(averbytespertx + ","); //avr-bytes-tx H
-        System.out.print(avertimepertxperT + ","); //avr-time-tx-T-ms I
-        System.out.print(avertxpersecperT + ","); //avr-tx-sec-T-IOPs J
-        System.out.print(averMBperTpersec + ","); //avr-MB-per-T-sec K
-        System.out.print(iops + ","); //total-tx-sec-IOPs L
-        System.out.print((averMBperTpersec * threads) + ","); //total-MB-sec M
-        System.out.print(lapsed ); //combined-time-ms N
+        if (!subset) {
+            System.out.print(threads + "," + threshold + "," + buffer + ","); //threads and buffe C, D, E
+            System.out.print(iterations + "," + ((float) totalbytes / 1048576) + ","); //transactions and MB F, G
+            System.out.print(averbytespertx + ","); //avr-bytes-tx H
+            System.out.format("%10.4f%s", avertimepertxperT, ","); //avr-time-tx-T-ms I
+            System.out.format("%10.2f%s", avertxpersecperT, ","); //avr-tx-sec-T-IOPs J
+            System.out.format("%10.4f%s", averMBperTpersec, ","); //avr-MB-per-T-sec K
+        }
+        System.out.format("%10.2f%s", iops, ","); //total-tx-sec-IOPs L
+        System.out.format("%10.2f", (averMBperTpersec * threads)); //total-MB-sec M
+        if (!subset) {
+            System.out.print("," + lapsed); //combined-time-ms N
+        }
         System.out.println();
-        return(iops);
+        return (iops);
     }
 
     private static void printsummary(float writebestiops, float writeworseiops, float readbestiops, float readworseiops) {

@@ -1,0 +1,12 @@
+], false);
+               mbsdataView = new google.visualization.DataView(mbs);
+                mbschart = new google.visualization.LineChart(document.getElementById('mbschart'));
+                google.visualization.events.addListener(mbschart, 'click', function (target) {
+                    if (target.targetID.match(/^legendentry#\d+$/)) {
+                        var index = parseInt(target.targetID.slice(12)) + 1;
+                        opscolumns[index].visible = !opscolumns[index].visible;
+                        mbscolumns[index].visible = !mbscolumns[index].visible;
+                        drawChart();
+                    }
+                });
+            }

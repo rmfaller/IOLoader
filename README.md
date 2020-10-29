@@ -32,3 +32,7 @@ dd if=/dev/zero bs=1024k of=tstfile count=1024 && dd if=tstfile bs=1024k of=/dev
 See: http://hints.macworld.com/article.php?story=20120704113548693
 
 ```
+Easy way to generate 20 1GB files in ./tmp:
+```
+java -jar /IOLoader/dist/IOLoader.jar --writetest --writeiterations 131072 --maxfilesize 2g --minthreads 20 --maxthreads 20 --writethreshold 5 --comment 2Tw --workingdirectory ./tmp --summary --append
+```
